@@ -12,6 +12,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(
     circles
     src/main.cpp
+    src/app.cpp
+    src/ui.cpp
 )
+
+target_include_directories(circles PRIVATE include/)
 
 target_link_libraries(circles raylib)
