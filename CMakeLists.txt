@@ -13,7 +13,7 @@ add_executable(
     circles
     src/main.cpp
     src/app.cpp
-    src/ui.cpp
+    src/math.cpp
 )
 
 target_include_directories(circles PRIVATE include/)
