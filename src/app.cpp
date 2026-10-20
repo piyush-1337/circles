@@ -8,9 +8,10 @@
 namespace circles::app {
 
 void run() {
+  SetConfigFlags(FLAG_VSYNC_HINT);
   // 0, 0 is choosing the whole screen
   InitWindow(0, 0, "Circles");
-  SetTargetFPS(60);
+  // SetTargetFPS(60);
 
   auto width = GetScreenWidth();
   auto height = GetScreenHeight();
@@ -107,7 +108,9 @@ void run() {
         DrawLineEx(trail[i - 1], trail[i], 2, RED);
       }
 
-      time += 2.0 * std::numbers::pi / static_cast<double>(cycles.size());
+      const double dt = GetFrameTime();
+      time += (2.0 * std::numbers::pi / static_cast<double>(cycles.size())) *
+              (dt * 60.0);
 
       if (time >= 2.0 * std::numbers::pi) {
         time = 0.0;
