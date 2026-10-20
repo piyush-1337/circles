@@ -1,7 +1,9 @@
 #include <raylib.h>
 
+#include <algorithm>
 #include <circles/app.hpp>
 #include <circles/math.hpp>
+#include <cmath>
 #include <vector>
 
 namespace circles::app {
@@ -25,6 +27,10 @@ void run() {
   bool is_drawing{false};
   bool is_simulating{false};
 
+  auto cycles = std::vector<math::Cycle>();
+  auto time = double{};
+  std::vector<Vector2> trail;
+
   while (!WindowShouldClose()) {
     auto mouse_pos = GetMousePosition();
 
@@ -45,7 +51,12 @@ void run() {
           points.push_back(points[0]);
           sampled = math::sample_points(points);
 
-          // TODO: compute DFT on `sampled`
+          for (auto& p : sampled) p.x += mid;
+
+          cycles = math::dft(sampled);
+
+          time = 0;
+          trail.clear();
         }
       }
     }
@@ -73,6 +84,36 @@ void run() {
 
     for (std::size_t i{1}; i < points.size(); ++i) {
       DrawLineEx(points[i - 1], points[i], 2, WHITE);
+    }
+
+    if (is_simulating) {
+      Vector2 pos{0, 0};
+
+      for (const auto& cycle : cycles) {
+        const Vector2 prev = pos;
+        const auto angle = cycle.phase + time * cycle.freq;
+
+        pos.x += cycle.radius * std::cos(angle);
+        pos.y += cycle.radius * std::sin(angle);
+
+        if (cycle.freq == 0) continue;
+
+        DrawCircleLinesV(prev, cycle.radius, GRAY);
+        DrawLineV(prev, pos, WHITE);
+      }
+
+      trail.push_back(pos);
+
+      for (std::size_t i{1}; i < trail.size(); ++i) {
+        DrawLineEx(trail[i - 1], trail[i], 2, RED);
+      }
+
+      time += 2.0 * std::numbers::pi / static_cast<double>(cycles.size());
+
+      if (time >= 2.0 * std::numbers::pi) {
+        time = 0.0;
+        trail.clear();
+      }
     }
 
     EndDrawing();

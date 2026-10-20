@@ -1,11 +1,13 @@
+#include <algorithm>
 #include <circles/math.hpp>
 #include <cmath>
+#include <numbers>
 #include <vector>
 
 namespace circles::math {
 
-auto sample_points(const std::vector<Vector2>& points,
-                   const std::size_t N) -> std::vector<Vector2> {
+auto sample_points(const std::vector<Vector2>& points, const std::size_t N)
+    -> std::vector<Vector2> {
   if (points.size() < 2) return points;
 
   auto total_len = double{0};
@@ -49,6 +51,47 @@ auto sample_points(const std::vector<Vector2>& points,
 
     sum += d;
   }
+
+  return res;
+}
+
+auto dft(const std::vector<Vector2>& sampled_points) -> std::vector<Cycle> {
+  const auto N = static_cast<int>(sampled_points.size());
+
+  const auto low_freq = -(N / 2);
+  const auto high_freq = N - (N / 2);
+
+  auto res = std::vector<Cycle>();
+  res.reserve(N);
+
+  for (auto k = low_freq; k < high_freq; ++k) {
+    auto re = double{0.0};
+    auto im = double{0.0};
+
+    for (int i{}; i < N; ++i) {
+      auto x = sampled_points[i].x;
+      auto y = sampled_points[i].y;
+
+      auto theta = (2 * std::numbers::pi * k * i) / static_cast<double>(N);
+
+      re += x * std::cos(theta) + y * std::sin(theta);
+      im += y * std::cos(theta) - x * std::sin(theta);
+    }
+
+    re /= static_cast<double>(N);
+    im /= static_cast<double>(N);
+
+    const auto radius = std::hypot(re, im);
+    const auto phase = std::atan2(im, re);
+
+    res.push_back(
+        {.freq = static_cast<int>(k), .radius = radius, .phase = phase});
+  }
+
+  std::ranges::sort(res, [](const Cycle& a, const Cycle& b) {
+    if (a.freq == 0 || b.freq == 0) return a.freq == 0 && b.freq != 0;
+    return a.radius > b.radius;
+  });
 
   return res;
 }
