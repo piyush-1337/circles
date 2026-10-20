@@ -1,6 +1,5 @@
 #include <raylib.h>
 
-#include <algorithm>
 #include <circles/app.hpp>
 #include <circles/math.hpp>
 #include <cmath>
